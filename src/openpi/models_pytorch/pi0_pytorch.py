@@ -19,6 +19,10 @@ def get_safe_dtype(target_dtype, device_type):
             return torch.float32
         if target_dtype == torch.float64:
             return torch.float64
+    elif device_type == "mps":
+        # MPS doesn't support float64 or bfloat16, use float32 instead
+        if target_dtype in (torch.bfloat16, torch.float64):
+            return torch.float32
     return target_dtype
 
 
@@ -109,7 +113,10 @@ class PI0Pytorch(nn.Module):
             self.action_time_mlp_out = nn.Linear(action_expert_config.width, action_expert_config.width)
 
         torch.set_float32_matmul_precision("high")
-        self.sample_actions = torch.compile(self.sample_actions, mode="max-autotune")
+        # NOTE: torch.compile doesn't fully support MPS backend yet (welford_combine not implemented)
+        # Disable torch.compile on MPS devices
+        if not (torch.backends.mps.is_available() and torch.backends.mps.is_built()):
+            self.sample_actions = torch.compile(self.sample_actions, mode="max-autotune")
 
         # Initialize gradient checkpointing flag
         self.gradient_checkpointing_enabled = False

@@ -75,7 +75,15 @@ class Policy(BasePolicy):
             self._rng, sample_rng_or_pytorch_device = jax.random.split(self._rng)
         else:
             # Convert inputs to PyTorch tensors and move to correct device
-            inputs = jax.tree.map(lambda x: torch.from_numpy(np.array(x)).to(self._pytorch_device)[None, ...], inputs)
+            def to_torch_tensor(x):
+                arr = np.array(x)
+                # MPS doesn't support float64, convert to float32
+                device_type = self._pytorch_device.type if hasattr(self._pytorch_device, 'type') else str(self._pytorch_device)
+                if device_type == 'mps' and arr.dtype == np.float64:
+                    arr = arr.astype(np.float32)
+                return torch.from_numpy(arr).to(self._pytorch_device)[None, ...]
+
+            inputs = jax.tree.map(to_torch_tensor, inputs)
             sample_rng_or_pytorch_device = self._pytorch_device
 
         # Prepare kwargs for sample_actions
