@@ -78,8 +78,10 @@ class Policy(BasePolicy):
             def to_torch_tensor(x):
                 arr = np.array(x)
                 # MPS doesn't support float64, convert to float32
-                device_type = self._pytorch_device.type if hasattr(self._pytorch_device, 'type') else str(self._pytorch_device)
-                if device_type == 'mps' and arr.dtype == np.float64:
+                device_type = (
+                    self._pytorch_device.type if hasattr(self._pytorch_device, "type") else str(self._pytorch_device)
+                )
+                if device_type == "mps" and arr.dtype == np.float64:
                     arr = arr.astype(np.float32)
                 return torch.from_numpy(arr).to(self._pytorch_device)[None, ...]
 
