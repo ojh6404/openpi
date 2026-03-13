@@ -570,12 +570,20 @@ _CONFIGS = [
         policy_metadata={"reset_pose": [0, -1.5, 1.5, 0, 0, 0]},
     ),
     TrainConfig(
+        name="pi0_base",
+        model=pi0_config.Pi0Config(),
+    ),
+    TrainConfig(
         name="pi05_aloha",
         model=pi0_config.Pi0Config(pi05=True),
         data=LeRobotAlohaDataConfig(
             assets=AssetsConfig(asset_id="trossen"),
         ),
         policy_metadata={"reset_pose": [0, -1.5, 1.5, 0, 0, 0]},
+    ),
+    TrainConfig(
+        name="pi05_base",
+        model=pi0_config.Pi0Config(pi05=True),
     ),
     TrainConfig(
         name="pi0_aloha_towel",
